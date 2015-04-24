@@ -1,23 +1,55 @@
 "use strict";
 
-function Game () {
-	this.field = new Field(8,8);
+function Game (width, height) {
+	if (isNaN(width)) { width = 8; }
+	if (isNaN(height)) { height = 8; }
+	this.field = new Map(width, height);
 	this.player = new Player();
 	this.snake = new Snake(this.field);
-	function countDown () {
+
+	// Need a painter object to control the DOM
+	// Use Pub/Sub to connect field and snake to painter and, the game functions
+	// a pub/sub version:
+	// http://davidwalsh.name/pubsub-javascript
+
+	function Build () {
+		// makes the UI environment
+		// menu
+		// intro screen
+		// animates stuff on the game screen e,g. scores etc
 	}
 
-	function start () {
-		field.growFood();
+	function Manipulate (argument) {
+		// changes the game area according to the active elements
+		// use pub/sub and subscribe to field and snake
 	}
 
-	function end () {
+	this.start = function() {
+		countDown()
+		this.field.growFood(this.snake.location());
+	};
+
+	this.end = function() {
+	};
+
+	function countDown (number) {
+		// set div contents to '3'
+		setTimeout(function() {
+			// set div contents to 2
+		}, 1000);
+		setTimeout(function() {
+			// set div contents to 1
+		}, 2000);
+		setTimeout(function() {
+			// set contents of div to 'GO!!'
+			// Fade out the div and remove
+		}, 2300);
 	}
 }
 
-function Field (width, height) {
-	var width = width;
-	var height = height;
+function Map (width, height) {
+	if (isNaN(width)) { width = 8; }
+	if (isNaN(height)) { height = 8; }
 	var allCells = setAllCells();
 
 	//  Protected
@@ -39,8 +71,8 @@ function Field (width, height) {
 		food = coord;
 	};
 
-	this.growFood = function(snakePosition) {
-		var cells = emptyCells(snakePosition);
+	this.growFood = function(filledCells) {
+		var cells = emptyCells(filledCells);
 		this.setFood(cells[Math.floor(Math.random()*cells.length)]);
 	};
 
@@ -73,12 +105,12 @@ function Field (width, height) {
 
 	//  Private
 
-	function emptyCells(snakePosition) {
+	function emptyCells(filledCells) {
 		var cells = [];
 		for (var i = allCells.length - 1; i >= 0; i--) {
 			var empty = true;
-			for (var j = snakePosition.length - 1; j >= 0; j--) {
-				if (snakePosition[j][0] === allCells[i][0] && snakePosition[j][1] === allCells[i][1]) { empty = false; }
+			for (var j = filledCells.length - 1; j >= 0; j--) {
+				if (filledCells[j][0] === allCells[i][0] && filledCells[j][1] === allCells[i][1]) { empty = false; }
 			}
 			if (empty === true) { cells.push(allCells[i]); }
 		}
@@ -88,11 +120,10 @@ function Field (width, height) {
 }
 
 
-function Player () {
+function Player (snake) {
 }
 
 function Snake (field) {
-	var field = field;
 	var compass = {
 		'left':       [-1,0],
 		'right':    [1,0],
@@ -111,17 +142,17 @@ function Snake (field) {
 		} else {
 			dies();
 		}
-	}
+	};
 
 	this.eat = function () {
 		if ( field.foundFood(position) ) {
 			grow();
 		}
-	}
+	};
 
 	this.location = function () {
 		return position;
-	}
+	};
 
 	this.getStatus = function () {
 		return status;
@@ -130,7 +161,7 @@ function Snake (field) {
 
 	//  Private
 	function setInitialPosition(field) {
-		var position = new Array;
+		var position = new Array();
 		var length = Math.ceil( field.getHeight() / 2 );
 		var x = Math.ceil( field.getWidth() / 2 );
 		var y = Math.ceil( field.getHeight() * 0.666 );
@@ -167,10 +198,6 @@ function Snake (field) {
 			return notOn;
 		}
 	}
-}
-
-function isNot(element) {
-	return (element[0] != coord[0] && element[1] != coord[1]);
 }
 
 function addVector(a,b) {

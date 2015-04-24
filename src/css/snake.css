@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+.cell {
+  height: 70px;
+  width: 70px;
+  position: relative;
+  display: inline-block;
+  zoom: 1; /* Fix for IE7 */
+  *display: inline; /* Fix for IE7 */
+}
+
+.cell > div {
+  margin: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  position: absolute;
+}
+
+.cell-top {
+  border-width: 33px 35px 37px 35px;
+  border-color: #007bff transparent transparent transparent;
+}
+
+.cell-right {
+  border-width: 35px 33px 35px 37px;
+  border-color: transparent  #007bff transparent transparent;
+}
+
+.cell-bottom {
+  border-width: 37px 35px 33px 35px;
+  border-color: transparent transparent #007bff transparent;
+}
+
+.cell-left {
+  border-width: 35px 37px 35px 33px;
+  border-color: transparent transparent transparent #007bff;
+}
