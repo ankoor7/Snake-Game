@@ -1,5 +1,25 @@
 "use strict";
 
+function Board (width, height) {
+	// paint the board
+	this.setup = function(container) {
+		var gameSpace = $(container);
+		var columns = '';
+
+		for (var j = height; j > 0; j--) {
+			gameSpace.append('<div class="row" id="row' + j + '"></div>');
+		}
+
+		for (var i = width; i > 0; i--) {
+			columns = columns + '<div class="column' + i + ' cell"></div>';
+		}
+		$('.row').append(columns);
+	};
+
+	// subscribe to field and snake
+
+}
+
 function Game (width, height) {
 	if (isNaN(width)) { width = 8; }
 	if (isNaN(height)) { height = 8; }
@@ -13,11 +33,10 @@ function Game (width, height) {
 	// http://davidwalsh.name/pubsub-javascript
 
 	function Build () {
-		// makes the UI environment
-		// menu
-		// intro screen
-		// animates stuff on the game screen e,g. scores etc
+		// makes the game screen and DOM elements
+		// intro screen (?)
 	}
+
 
 	function Manipulate (argument) {
 		// changes the game area according to the active elements
