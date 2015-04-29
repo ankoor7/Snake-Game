@@ -4,6 +4,7 @@ function Board (width, height) {
 	// paint the board
 	this.setup = function(container) {
 		var gameSpace = $(container);
+		gameSpace.empty();
 		var columns = '';
 
 		for (var j = height; j > 0; j--) {
@@ -15,6 +16,91 @@ function Board (width, height) {
 		}
 		$('.row').append(columns);
 	};
+
+	this.setCell = function(coord, content) {
+		var selector = '#row' + coord[1] + ' .column' + coord[0];
+		var cell = $(selector);
+		empty(cell);
+		var setContents = {
+			'empty': empty,
+			'horizontal': horizontal,
+			'vertical': vertical,
+			'topLeft': topLeft,
+			'topRight': topRight,
+			'bottomLeft': bottomLeft,
+			'bottomRight': bottomRight,
+			'head': head,
+			'tail': tail,
+			'food': food,
+		};
+		setContents[content](cell);
+	};
+
+	function empty (cell) {
+		cell.empty();
+	}
+
+	function horizontal (cell) {
+		cell.append(triangles(['top', 'bottom']));
+	}
+
+	function vertical (cell) {
+		cell.append(triangles(['left', 'right']));
+	}
+
+	function topLeft (cell) {
+		cell.append(triangles(['left', 'top']));
+	}
+
+	function topRight (cell) {
+		cell.append(triangles(['top', 'right']));
+	}
+
+	function bottomLeft (cell) {
+		cell.append(triangles(['left', 'bottom']));
+	}
+
+	function bottomRight (cell) {
+		cell.append(triangles(['bottom', 'right']));
+	}
+
+	function triangles (positions) {
+		var html = '';
+		positions.forEach( function (position) {
+			html = html + '<div class="cell-' + position + '"></div>';
+		});
+		return html;
+	}
+
+	function head (cell) {
+		empty(cell);
+		cell.append(snakeHead());
+	}
+
+	function tail (cell) {
+		empty(cell);
+		cell.append(snakeTail());
+	}
+
+	function food (cell) {
+		empty(cell);
+		cell.append(snakeFood());
+	}
+
+	function snakeHead () {
+		var html = '<div>Head</div>';
+		return html;
+	}
+
+	function snakeTail () {
+		var html = '<div>Tail</div>';
+		return html;
+	}
+
+	function snakeFood () {
+		var html = '<div>Food</div>';
+		return html;
+	}
 
 	// subscribe to field and snake
 
