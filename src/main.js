@@ -113,10 +113,15 @@ function Game (width, height) {
 	this.player = new Player();
 	this.snake = new Snake(this.field);
 
-	// Need a painter object to control the DOM
+
+	// a painter object to control the DOM
+	var board = new Board(width, height);
+
 	// Use Pub/Sub to connect field and snake to painter and, the game functions
 	// a pub/sub version:
 	// http://davidwalsh.name/pubsub-javascript
+	var messenger = new PubSub();
+
 
 	function Build () {
 		// makes the game screen and DOM elements
@@ -151,6 +156,38 @@ function Game (width, height) {
 		}, 2300);
 	}
 }
+
+function PubSub() {
+	var topics = {},
+		hOP = topics.hasOwnProperty;
+	return {
+		topics: topics,
+		register: function(topic, callback) {
+			// create the topic if required
+			if (!hOP.call(topics, topic)) topics[topic] = [];
+
+			// Add the callback to the list
+			var index = topics[topic].push(callback) - 1;
+
+			// provide a hnadle to remove the topic
+			return {
+				remove: function() {
+					delete topics[topic][index];
+				}
+			}
+		},
+		send: function(topic, info) {
+			// If topic does not exist or there are no subscribers, just return
+			if (!hOP.call(topics, topic)) return;
+
+			// publish to each subscriber
+			topics[topic].forEach(function(subscriber) {
+				subscriber(info !== undefined ? info : {});
+			});
+		}
+	};
+};
+
 
 function Map (width, height) {
 	if (isNaN(width)) { width = 8; }

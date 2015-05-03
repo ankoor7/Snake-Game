@@ -1,0 +1,9 @@
+Next Task:
+  ☐ Connect snake location to the game board
+      ✔ -- make pub/sub module @done (15-05-03 11:13)
+      ☐ -- publish updates for the board
+      ☐ -- subscribe the board to the updates
+      ☐ -- display updated board
+  ☐ Get all the game pieces displayed on screen to start a game
+  ☐ connect the player to control the snake
+  ☐
