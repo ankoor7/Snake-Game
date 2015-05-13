@@ -1,111 +1,5 @@
 "use strict";
 
-function Board (width, height) {
-	// paint the board
-	this.setup = function(container) {
-		var gameSpace = $(container);
-		gameSpace.empty();
-		var columns = '';
-
-		for (var j = height; j > 0; j--) {
-			gameSpace.append('<div class="row" id="row' + j + '"></div>');
-		}
-
-		for (var i = width; i > 0; i--) {
-			columns = columns + '<div class="column' + i + ' cell"></div>';
-		}
-		$('.row').append(columns);
-	};
-
-	this.setCell = function(coord, content) {
-		var selector = '#row' + coord[1] + ' .column' + coord[0];
-		var cell = $(selector);
-		empty(cell);
-		var setContents = {
-			'empty': empty,
-			'horizontal': horizontal,
-			'vertical': vertical,
-			'topLeft': topLeft,
-			'topRight': topRight,
-			'bottomLeft': bottomLeft,
-			'bottomRight': bottomRight,
-			'head': head,
-			'tail': tail,
-			'food': food,
-		};
-		setContents[content](cell);
-	};
-
-	function empty (cell) {
-		cell.empty();
-	}
-
-	function horizontal (cell) {
-		cell.append(triangles(['top', 'bottom']));
-	}
-
-	function vertical (cell) {
-		cell.append(triangles(['left', 'right']));
-	}
-
-	function topLeft (cell) {
-		cell.append(triangles(['left', 'top']));
-	}
-
-	function topRight (cell) {
-		cell.append(triangles(['top', 'right']));
-	}
-
-	function bottomLeft (cell) {
-		cell.append(triangles(['left', 'bottom']));
-	}
-
-	function bottomRight (cell) {
-		cell.append(triangles(['bottom', 'right']));
-	}
-
-	function triangles (positions) {
-		var html = '';
-		positions.forEach( function (position) {
-			html = html + '<div class="cell-' + position + '"></div>';
-		});
-		return html;
-	}
-
-	function head (cell) {
-		empty(cell);
-		cell.append(snakeHead());
-	}
-
-	function tail (cell) {
-		empty(cell);
-		cell.append(snakeTail());
-	}
-
-	function food (cell) {
-		empty(cell);
-		cell.append(snakeFood());
-	}
-
-	function snakeHead () {
-		var html = '<div>Head</div>';
-		return html;
-	}
-
-	function snakeTail () {
-		var html = '<div>Tail</div>';
-		return html;
-	}
-
-	function snakeFood () {
-		var html = '<div>Food</div>';
-		return html;
-	}
-
-	// subscribe to field and snake
-
-}
-
 function Game (width, height) {
 	if (isNaN(width)) { width = 8; }
 	if (isNaN(height)) { height = 8; }
@@ -122,6 +16,18 @@ function Game (width, height) {
 	// http://davidwalsh.name/pubsub-javascript
 	var messenger = new PubSub();
 
+	this.snake.broadcast = messenger.send;
+	this.field.broadcast = messenger.send;
+	this.player.broadcast = messenger.send;
+	messenger.register('snake', 'position', board.drawSnake);
+	messenger.register('map', 'food', board.drawFood);
+	// when snake is dead:
+	// - clear the board,
+	//  - show the score,
+	//  - show the end of game menu
+	// messenger.register('snake', 'dead', board.clearBoard);
+	// messenger.register('snake', 'dead', showScores);
+	// messenger.register('snake', 'dead', showEndGameMenu);
 
 	function Build () {
 		// makes the game screen and DOM elements
@@ -157,12 +63,162 @@ function Game (width, height) {
 	}
 }
 
+function Board (width, height) {
+	var head, tail, snakePosition;
+
+	// put the board elements in the DOM
+	this.setup = function(container) {
+		var gameSpace = $(container);
+		gameSpace.empty();
+		var columns = '';
+
+		for (var j = height; j > 0; j--) {
+			gameSpace.append('<div class="row" id="row' + j + '"></div>');
+		}
+
+		for (var i = width; i > 0; i--) {
+			columns = columns + '<div class="column' + i + ' cell"></div>';
+		}
+		$('.row').append(columns);
+	};
+
+	this.drawFood = function (coord) {
+		this.setCell(coord, 'food');
+	};
+
+	this.drawSnake = function (position) {
+		_.each(snakePosition, empty(coord));
+
+		if (head !== _.first(position)) {
+			this.setCell(position[0], 'head');
+			head = _.first(position);
+		}
+
+		if (tail !== _.last(position)) {
+			this.setCell(position[0], 'tail');
+			tail = _.last(position);
+		}
+
+		_.each(position, drawBodyCell(coord, index, position));
+
+		snakePosition = position;
+
+		function drawBodyCell (coord, index, position) {
+			if (index === 0 || index === position.length -1) return;
+
+			var threeStepDifference = subtractVector(position[index-1], position[index+1]),
+				oneStepDifference = subtractVector(position[index-1], coord),
+				signature = addVector(oneStepDifference, threeStepDifference),
+				options = {
+					'-2,1': 'bottomLeft',
+					'2,1': 'bottomRight',
+					'-2,-1': 'topLeft',
+					'2,-1': 'topRight',
+					'1,2': 'topLeft',
+					'-1,2': 'bottomLeft',
+					'1,-2': 'topRight',
+					'-1,-2': 'bottomRight',
+				};
+
+				setCell(coord, options[signature]);
+		}
+	}
+
+	this.setCell = function(coord, content) {
+		var cell = getCell(coord);
+		cell.empty();
+		var setContents = {
+			'empty': empty,
+			'horizontal': horizontal,
+			'vertical': vertical,
+			'topLeft': topLeft,
+			'topRight': topRight,
+			'bottomLeft': bottomLeft,
+			'bottomRight': bottomRight,
+			'head': head,
+			'tail': tail,
+			'food': food,
+		};
+		setContents[content](cell);
+	};
+
+	this.getCell = function(coord) {
+		var selector = '#row' + coord[1] + ' .column' + coord[0];
+		return $(selector);
+	}
+
+	function empty (coord) {
+		getCell(coord).empty();
+	}
+
+	function horizontal (cell) {
+		cell.append(triangles(['top', 'bottom']));
+	}
+
+	function vertical (cell) {
+		cell.append(triangles(['left', 'right']));
+	}
+
+	function topLeft (cell) {
+		cell.append(triangles(['left', 'top']));
+	}
+
+	function topRight (cell) {
+		cell.append(triangles(['top', 'right']));
+	}
+
+	function bottomLeft (cell) {
+		cell.append(triangles(['left', 'bottom']));
+	}
+
+	function bottomRight (cell) {
+		cell.append(triangles(['bottom', 'right']));
+	}
+
+	function triangles (positions) {
+		var html = '';
+		positions.forEach( function (position) {
+			html = html + '<div class="cell-' + position + '"></div>';
+		});
+		return html;
+	}
+
+	function head (cell) {
+		cell.append(snakeHead());
+	}
+
+	function tail (cell) {
+		cell.append(snakeTail());
+	}
+
+	function food (cell) {
+		cell.append(snakeFood());
+	}
+
+	function snakeHead () {
+		var html = '<div>Head</div>';
+		return html;
+	}
+
+	function snakeTail () {
+		var html = '<div>Tail</div>';
+		return html;
+	}
+
+	function snakeFood () {
+		var html = '<div>Food</div>';
+		return html;
+	}
+
+}
+
 function PubSub() {
 	var topics = {},
 		hOP = topics.hasOwnProperty;
 	return {
 		topics: topics,
-		register: function(topic, callback) {
+		register: function(entity, name, callback) {
+			var topic = entity.toString() + name.toString();
 			// create the topic if required
 			if (!hOP.call(topics, topic)) topics[topic] = [];
 
@@ -176,7 +232,8 @@ function PubSub() {
 				}
 			}
 		},
-		send: function(topic, info) {
+		send: function(entity, name, info) {
+			var topic = entity.toString() + name.toString();
 			// If topic does not exist or there are no subscribers, just return
 			if (!hOP.call(topics, topic)) return;
 
@@ -197,6 +254,14 @@ function Map (width, height) {
 	//  Protected
 	var food;
 
+	this.setBroadcast = function (method) {
+		broadcast = method;
+	};
+	this.testBroadcast = function() {
+		return broadcast();
+	};
+	function broadcast() {};
+
 	this.getHeight = function() {
 		return height;
 	};
@@ -216,6 +281,7 @@ function Map (width, height) {
 	this.growFood = function(filledCells) {
 		var cells = emptyCells(filledCells);
 		this.setFood(cells[Math.floor(Math.random()*cells.length)]);
+		broadcast('map', 'food', food);
 	};
 
 	this.foundFood = function(snakePosition) {
@@ -258,11 +324,17 @@ function Map (width, height) {
 		}
 		return cells;
 	}
-
 }
 
 
 function Player (snake) {
+	this.setBroadcast = function (method) {
+		broadcast = method;
+	};
+	this.testBroadcast = function() {
+		return broadcast();
+	};
+	function broadcast() {};
 }
 
 function Snake (field) {
@@ -275,12 +347,18 @@ function Snake (field) {
 	var position = setInitialPosition(field);
 	var status = 'alive';
 
-	//  Should be Protected
+	this.setBroadcast = function (method) {
+		broadcast = method;
+	};
+	this.testBroadcast = function() {
+		return broadcast();
+	};
+	function broadcast() {};
+
 	this.move = function (direction) {
 		var nextCoord = addVector(position[0], compass[direction]);
 		if (canMoveTo(nextCoord, position)) {
-			position.unshift(nextCoord);
-			position.pop();
+			setPosition(nextCoord);
 		} else {
 			dies();
 		}
@@ -291,6 +369,12 @@ function Snake (field) {
 			grow();
 		}
 	};
+
+	function setPosition(nextCoord) {
+		position.unshift(nextCoord);
+		position.pop();
+		broadcast('snake', 'position', position);
+	}
 
 	this.location = function () {
 		return position;
@@ -319,7 +403,7 @@ function Snake (field) {
 	}
 
 	function dies() {
-		// console.log('dies');
+		broadcast('snake', 'dead', true);
 		status = 'dead';
 	}
 
@@ -346,32 +430,6 @@ function addVector(a,b) {
 	return [ a[0]+b[0],  a[1]+b[1] ];
 }
 
-// Polyfill includes
-if (![].includes) {
-  Array.prototype.includes = function(searchElement /*, fromIndex*/ ) {
-    'use strict';
-    var O = Object(this);
-    var len = parseInt(O.length) || 0;
-    if (len === 0) {
-      return false;
-    }
-    var n = parseInt(arguments[1]) || 0;
-    var k;
-    if (n >= 0) {
-      k = n;
-    } else {
-      k = len + n;
-      if (k < 0) {k = 0;}
-    }
-    var currentElement;
-    while (k < len) {
-      currentElement = O[k];
-      if (searchElement === currentElement ||
-         (searchElement !== searchElement && currentElement !== currentElement)) {
-        return true;
-      }
-      k++;
-    }
-    return false;
-  };
+function subtractVector (a, b) {
+	return [ a[0]-b[0],  a[1]-b[1] ];
 }

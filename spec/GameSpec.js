@@ -1,4 +1,4 @@
-xdescribe("Game", function(){
+describe("Game", function(){
 	var game;
 	beforeEach(function() {
 		game = new Game();
@@ -10,12 +10,12 @@ xdescribe("Game", function(){
 	});
 
 
-	it("should run a countdown before initiating play", function(){
+	xit("should run a countdown before initiating play", function(){
 		game.start();
 		// use intern to check if a #countdown div is active
 	});
 
-	describe("starting a game", function() {
+	xdescribe("starting a game", function() {
 		beforeEach(function(done) {
 			game.start();
 
@@ -29,12 +29,14 @@ xdescribe("Game", function(){
 		it("should run the game after the countdown", function(){});
 	});
 
-	it("should end a game when snake is dead", function(){});
+	xdescribe("ending a game", function() {
+		it("should end a game when snake is dead", function(){});
 
-	it("should show an outro screen when game ends", function() {});
+		it("should show an outro screen when game ends", function() {});
 
-	it("should restart when requested", function(){});
+		it("should restart when requested", function(){});
 
-	it("should quit when requested", function(){});
+		it("should quit when requested", function(){});
+	});
 
 });
