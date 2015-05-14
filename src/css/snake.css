@@ -1,10 +1,32 @@
 * {
   box-sizing: border-box;
 }
+/*Desktop and Laptop*/
+@media only screen and (min-width : 1224px) {
+  .cell {
+    height: 20px;
+    width: 20px;
+  }
+}
+
+/*Large Screens*/
+@media screen and (min-width : 1824px) {
+  .cell {
+    height: 30px;
+    width: 30px;
+  }
+}
+
+/*Web browser*/
+@media screen and (min-width: 600px) and (max-width: 900px) {
+  .cell {
+    height: 10px;
+    width: 10px;
+  }
+}
+
 
 .cell {
-  height: 70px;
-  width: 70px;
   position: relative;
   display: inline-block;
   zoom: 1; /* Fix for IE7 */

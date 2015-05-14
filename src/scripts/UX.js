@@ -1,15 +1,17 @@
 "use strict";
 
-function Game (width, height) {
-	if (isNaN(width)) { width = 8; }
-	if (isNaN(height)) { height = 8; }
-	this.field = new Map(width, height);
+function Game () {
+	var board,
+		messenger,
+		cellsWide,
+		cellsHigh;
+
+	build();
+
+	this.field = new Map(cellsWide, cellsHigh);
 	this.player = new Player();
 	this.snake = new Snake(this.field);
 
-
-	// a painter object to control the DOM
-	var board = new Board(width, height);
 
 	// Use Pub/Sub to connect field and snake to painter and, the game functions
 	// a pub/sub version:
@@ -21,6 +23,8 @@ function Game (width, height) {
 	this.player.broadcast = messenger.send;
 	messenger.register('snake', 'position', board.drawSnake);
 	messenger.register('map', 'food', board.drawFood);
+
+
 	// when snake is dead:
 	// - clear the board,
 	//  - show the score,
@@ -29,9 +33,32 @@ function Game (width, height) {
 	// messenger.register('snake', 'dead', showScores);
 	// messenger.register('snake', 'dead', showEndGameMenu);
 
-	function Build () {
-		// makes the game screen and DOM elements
-		// intro screen (?)
+	function build () {
+		var minWidth = _.min([$(window).width(), $(window).height()]),
+			screenSizes = [{
+					name: 'small',
+					width: 900,
+					cellSize: 10,
+				},
+				{
+					name: 'medium',
+					width: 1224,
+					cellSize: 20,
+				},
+				{
+					name: 'large',
+					width: 1824,
+					cellSize: 30,
+			}],
+			thisScreenSize = _.find(screenSizes, function (option) {
+				return (option.width >= minWidth);
+			});
+
+			cellsWide = Math.floor($('#game_space').width() / thisScreenSize.cellSize);
+			cellsHigh = Math.floor($('#game_space').height() / thisScreenSize.cellSize);
+			// a painter object to control the DOM
+			board = new Board(cellsWide, cellsHigh);
+
 	}
 
 
