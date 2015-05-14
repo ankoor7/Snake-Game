@@ -1,6 +1,22 @@
 * {
   box-sizing: border-box;
 }
+
+html, body, #game_space {
+  height: 100%;
+}
+
+#game_space {
+  width: 80%;
+  margin: auto;
+  height: 80%;
+}
+
+body .cell, body .row {
+  line-height: 120%;
+  font-size: 0pt;
+}
+
 /*Desktop and Laptop*/
 @media only screen and (min-width : 1224px) {
   .cell {
@@ -15,10 +31,14 @@
     height: 30px;
     width: 30px;
   }
+
+
+
+
 }
 
 /*Web browser*/
-@media screen and (min-width: 600px) and (max-width: 900px) {
+@media screen and (min-width: 600px) {
   .cell {
     height: 10px;
     width: 10px;
@@ -27,6 +47,7 @@
 
 
 .cell {
+  background-color: blue;
   position: relative;
   display: inline-block;
   zoom: 1; /* Fix for IE7 */

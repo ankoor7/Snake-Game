@@ -1,13 +1,12 @@
 "use strict";
 
-function Game () {
-	var board,
-		messenger,
+function Game (container) {
+	var messenger,
 		cellsWide,
 		cellsHigh;
 
-	build();
-
+	this.board = build();
+	this.board.setup(container);
 	this.field = new Map(cellsWide, cellsHigh);
 	this.player = new Player();
 	this.snake = new Snake(this.field);
@@ -16,13 +15,13 @@ function Game () {
 	// Use Pub/Sub to connect field and snake to painter and, the game functions
 	// a pub/sub version:
 	// http://davidwalsh.name/pubsub-javascript
-	var messenger = new PubSub();
+	messenger = new PubSub();
 
 	this.snake.broadcast = messenger.send;
 	this.field.broadcast = messenger.send;
 	this.player.broadcast = messenger.send;
-	messenger.register('snake', 'position', board.drawSnake);
-	messenger.register('map', 'food', board.drawFood);
+	messenger.register('snake', 'position', this.board.drawSnake);
+	messenger.register('map', 'food', this.board.drawFood);
 
 
 	// when snake is dead:
@@ -34,11 +33,12 @@ function Game () {
 	// messenger.register('snake', 'dead', showEndGameMenu);
 
 	function build () {
-		var minWidth = _.min([$(window).width(), $(window).height()]),
+		var board,
+			minWidth = _.min([$(container).width(), $(container).height()]),
 			screenSizes = [{
-					name: 'small',
-					width: 900,
-					cellSize: 10,
+					name: 'large',
+					width: 1824,
+					cellSize: 30,
 				},
 				{
 					name: 'medium',
@@ -46,19 +46,38 @@ function Game () {
 					cellSize: 20,
 				},
 				{
-					name: 'large',
-					width: 1824,
-					cellSize: 30,
+					name: 'small',
+					width: 900,
+					cellSize: 10,
 			}],
-			thisScreenSize = _.find(screenSizes, function (option) {
-				return (option.width >= minWidth);
+			thisScreenSize = _.reduce(screenSizes, function (smallScreen, thisScreen, key) {
+				if (thisScreen.width > minWidth) return smallScreen;
+				return ( (smallScreen.width - minWidth) < (thisScreen.width - minWidth) ) ? smallScreen : thisScreen;
 			});
 
-			cellsWide = Math.floor($('#game_space').width() / thisScreenSize.cellSize);
-			cellsHigh = Math.floor($('#game_space').height() / thisScreenSize.cellSize);
+			if (minWidth < 1824) {
+				thisScreenSize = _.find(screenSizes, function (option) {
+					return (option.width === 1824);
+				})
+			}
+
+			if (minWidth < 1224) {
+				thisScreenSize = _.find(screenSizes, function (option) {
+					return (option.width === 1224);
+				})
+			}
+
+			if (minWidth < 900) {
+				thisScreenSize = _.find(screenSizes, function (option) {
+					return (option.width === 900);
+				})
+			}
+
+			cellsWide = Math.floor($(container).width() / thisScreenSize.cellSize);
+			cellsHigh = Math.floor($(container).height() / thisScreenSize.cellSize);
 			// a painter object to control the DOM
 			board = new Board(cellsWide, cellsHigh);
-
+			return board;
 	}
 
 
