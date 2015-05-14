@@ -1,0 +1,22 @@
+{
+  "name": "Snake_Game_JS",
+  "version": "1.0.0",
+  "description": "Small project to learn some FrontEnd development",
+  "main": "./src/games.html",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankoor7/Snake-Game.git"
+  },
+  "author": "Ankoor Patel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ankoor7/Snake-Game/issues"
+  },
+  "homepage": "https://github.com/ankoor7/Snake-Game"
+}
