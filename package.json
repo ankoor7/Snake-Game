@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/ankoor7/Snake-Game/issues"
   },
-  "homepage": "https://github.com/ankoor7/Snake-Game"
+  "homepage": "https://github.com/ankoor7/Snake-Game",
+  "devDependencies": {
+    "grunt-karma": "*",
+    "karma-jasmine": "*",
+    "karma-phantomjs-launcher": "*"
+  }
 }
