@@ -22,7 +22,9 @@ function Game (container) {
 	this.player.broadcast = messenger.send;
 	messenger.register('snake', 'position', this.board.drawSnake);
 	messenger.register('map', 'food', this.board.drawFood);
-
+	for (var i = 12; i >= 0; i--) {
+		this.board.drawFood([i,i]);
+	};
 
 	// when snake is dead:
 	// - clear the board,
@@ -123,25 +125,25 @@ function Board (width, height) {
 		}
 
 		for (var i = width; i > 0; i--) {
-			columns = columns + '<div class="column' + i + ' cell"></div>';
+			columns = '<div class="column' + i + ' cell"></div>' + columns;
 		}
 		$('.row').append(columns);
 	};
 
 	this.drawFood = function (coord) {
-		this.setCell(coord, 'food');
+		setCell(coord, 'food');
 	};
 
 	this.drawSnake = function (position) {
 		_.each(snakePosition, empty(coord));
 
 		if (head !== _.first(position)) {
-			this.setCell(position[0], 'head');
+			setCell(position[0], 'head');
 			head = _.first(position);
 		}
 
 		if (tail !== _.last(position)) {
-			this.setCell(position[0], 'tail');
+			setCell(position[0], 'tail');
 			tail = _.last(position);
 		}
 
@@ -168,9 +170,9 @@ function Board (width, height) {
 
 				setCell(coord, options[signature]);
 		}
-	}
+	};
 
-	this.setCell = function(coord, content) {
+	function setCell(coord, content) {
 		var cell = getCell(coord);
 		cell.empty();
 		var setContents = {
@@ -188,7 +190,7 @@ function Board (width, height) {
 		setContents[content](cell);
 	};
 
-	this.getCell = function(coord) {
+	function getCell(coord) {
 		var selector = '#row' + coord[1] + ' .column' + coord[0];
 		return $(selector);
 	}
@@ -230,15 +232,18 @@ function Board (width, height) {
 	}
 
 	function head (cell) {
-		cell.append(snakeHead());
+		// cell.append(snakeHead());
+		horizontal(cell);
 	}
 
 	function tail (cell) {
-		cell.append(snakeTail());
+		// cell.append(snakeTail());
+		horizontal(cell);
 	}
 
 	function food (cell) {
-		cell.append(snakeFood());
+		// cell.append(snakeFood());
+		vertical(cell);
 	}
 
 	function snakeHead () {

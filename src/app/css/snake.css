@@ -47,7 +47,7 @@ body .cell, body .row {
 
 
 .cell {
-  background-color: blue;
+  background-color: gray;
   position: relative;
   display: inline-block;
   zoom: 1; /* Fix for IE7 */
@@ -61,21 +61,21 @@ body .cell, body .row {
 }
 
 .cell-top {
-  border-width: 34px 35px 36px 35px;
+  border-width: 4px 5px 6px 5px;
   border-color: #007bff transparent transparent transparent;
 }
 
 .cell-right {
-  border-width: 35px 34px 35px 36px;
+  border-width: 5px 4px 5px 6px;
   border-color: transparent  #007bff transparent transparent;
 }
 
 .cell-bottom {
-  border-width: 36px 35px 34px 35px;
+  border-width: 6px 5px 4px 5px;
   border-color: transparent transparent #007bff transparent;
 }
 
 .cell-left {
-  border-width: 35px 36px 35px 34px;
+  border-width: 5px 6px 5px 4px;
   border-color: transparent transparent transparent #007bff;
 }
