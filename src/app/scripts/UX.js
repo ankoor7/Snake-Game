@@ -22,9 +22,21 @@ function Game (container) {
 	this.player.broadcast = messenger.send;
 	messenger.register('snake', 'position', this.board.drawSnake);
 	messenger.register('map', 'food', this.board.drawFood);
+
+	// Snake needs to drawn onto the board at the start
+	// Should this be done automatically in snake or from board?
+
+	this.board.drawSnake(this.snake.location());
 	for (var i = 12; i >= 0; i--) {
 		this.board.drawFood([i,i]);
 	};
+	this.snake.move('left');
+	this.snake.move('left');
+	this.snake.move('left');
+	//
+	// SNAKE.MOVE DOES NOT TRIGGER BOARD.DRAWSNAKE
+	//
+	this.board.drawSnake(this.snake.location());
 
 	// when snake is dead:
 	// - clear the board,
@@ -135,25 +147,18 @@ function Board (width, height) {
 	};
 
 	this.drawSnake = function (position) {
-		_.each(snakePosition, empty(coord));
+		_.each(snakePosition, erase);
+		console.log(position[0][1]);
+		_.each(position, drawBodyCell);
+		snakePosition = position.slice(0);
 
-		if (head !== _.first(position)) {
-			setCell(position[0], 'head');
-			head = _.first(position);
+		function erase (coord, index, position) {
+			var cell = getCell(coord);
+			empty(cell);
 		}
-
-		if (tail !== _.last(position)) {
-			setCell(position[0], 'tail');
-			tail = _.last(position);
-		}
-
-		_.each(position, drawBodyCell(coord, index, position));
-
-		snakePosition = position;
 
 		function drawBodyCell (coord, index, position) {
-			if (index === 0 || index === position.length -1) return;
-
+			if (index > 0 && index < position.length -1 ) {
 			var threeStepDifference = subtractVector(position[index-1], position[index+1]),
 				oneStepDifference = subtractVector(position[index-1], coord),
 				signature = addVector(oneStepDifference, threeStepDifference),
@@ -168,13 +173,21 @@ function Board (width, height) {
 					'-1,-2': 'bottomRight',
 				};
 
-				setCell(coord, options[signature]);
+				setCell(coord, 'topRight');
+			} else if (index === 0) {
+				console.log('head');
+				setCell(_.first(position), 'head');
+				head = _.first(position);
+			} else if (index === position.length - 1) {
+				console.log('tail');
+				setCell(_.last(position), 'tail');
+				tail = _.last(position);
+			}
 		}
 	};
 
 	function setCell(coord, content) {
 		var cell = getCell(coord);
-		cell.empty();
 		var setContents = {
 			'empty': empty,
 			'horizontal': horizontal,
@@ -187,7 +200,13 @@ function Board (width, height) {
 			'tail': tail,
 			'food': food,
 		};
-		setContents[content](cell);
+		try {
+			setContents[content](cell);
+		} catch (e) {
+			// console.log(e);
+		} finally {
+			setContents.vertical(cell);
+		}
 	};
 
 	function getCell(coord) {
@@ -195,32 +214,36 @@ function Board (width, height) {
 		return $(selector);
 	}
 
-	function empty (coord) {
-		getCell(coord).empty();
+	function selectCell (coord) {
+		return '#row' + coord[1] + ' .column' + coord[0];
+	}
+
+	function empty (cell) {
+		cell.empty();
 	}
 
 	function horizontal (cell) {
-		cell.append(triangles(['top', 'bottom']));
+		cell.empty().append(triangles(['top', 'bottom']));
 	}
 
 	function vertical (cell) {
-		cell.append(triangles(['left', 'right']));
+		cell.empty().append(triangles(['left', 'right']));
 	}
 
 	function topLeft (cell) {
-		cell.append(triangles(['left', 'top']));
+		cell.empty().append(triangles(['left', 'top']));
 	}
 
 	function topRight (cell) {
-		cell.append(triangles(['top', 'right']));
+		cell.empty().append(triangles(['top', 'right']));
 	}
 
 	function bottomLeft (cell) {
-		cell.append(triangles(['left', 'bottom']));
+		cell.empty().append(triangles(['left', 'bottom']));
 	}
 
 	function bottomRight (cell) {
-		cell.append(triangles(['bottom', 'right']));
+		cell.empty().append(triangles(['bottom', 'right']));
 	}
 
 	function triangles (positions) {
@@ -233,12 +256,12 @@ function Board (width, height) {
 
 	function head (cell) {
 		// cell.append(snakeHead());
-		horizontal(cell);
+		cell.empty().append(triangles(['bottom']));
 	}
 
 	function tail (cell) {
 		// cell.append(snakeTail());
-		horizontal(cell);
+		cell.empty().append(triangles(['top']));
 	}
 
 	function food (cell) {
