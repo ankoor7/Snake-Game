@@ -20,8 +20,8 @@ body .cell, body .row {
 /*Desktop and Laptop*/
 @media only screen and (min-width : 1224px) {
   .cell {
-    height: 20px;
-    width: 20px;
+    height: 30px;
+    width: 30px;
   }
 }
 
@@ -40,8 +40,8 @@ body .cell, body .row {
 /*Web browser*/
 @media screen and (min-width: 600px) {
   .cell {
-    height: 10px;
-    width: 10px;
+    height: 30px;
+    width: 30px;
   }
 }
 
@@ -61,21 +61,21 @@ body .cell, body .row {
 }
 
 .cell-top {
-  border-width: 4px 5px 6px 5px;
+  border-width: 14px 15px 16px 15px;
   border-color: #007bff transparent transparent transparent;
 }
 
 .cell-right {
-  border-width: 5px 4px 5px 6px;
+  border-width: 15px 14px 15px 16px;
   border-color: transparent  #007bff transparent transparent;
 }
 
 .cell-bottom {
-  border-width: 6px 5px 4px 5px;
+  border-width: 16px 15px 14px 15px;
   border-color: transparent transparent #007bff transparent;
 }
 
 .cell-left {
-  border-width: 5px 6px 5px 4px;
+  border-width: 15px 16px 15px 14px;
   border-color: transparent transparent transparent #007bff;
 }

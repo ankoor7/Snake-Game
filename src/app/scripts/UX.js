@@ -1,13 +1,12 @@
 "use strict";
 
-function Game (container) {
+function Game (divContainer) {
 	var messenger,
 		cellsWide,
 		cellsHigh;
 
-	this.board = build();
-	this.board.setup(container);
-	this.field = new Map(cellsWide, cellsHigh);
+	this.board = build(divContainer);
+	this.field = new Map(this.board.width, this.board.height);
 	this.player = new Player();
 	this.snake = new Snake(this.field);
 
@@ -27,11 +26,6 @@ function Game (container) {
 	// Should this be done automatically in snake or from board?
 
 	this.board.drawSnake(this.snake.location());
-	for (var i = 12; i >= 0; i--) {
-		this.board.drawFood([i,i]);
-	};
-	this.snake.move('left');
-	this.snake.move('left');
 	this.snake.move('left');
 	//
 	// SNAKE.MOVE DOES NOT TRIGGER BOARD.DRAWSNAKE
@@ -46,7 +40,7 @@ function Game (container) {
 	// messenger.register('snake', 'dead', showScores);
 	// messenger.register('snake', 'dead', showEndGameMenu);
 
-	function build () {
+	function build (container) {
 		var board,
 			minWidth = _.min([$(container).width(), $(container).height()]),
 			screenSizes = [{
@@ -57,12 +51,12 @@ function Game (container) {
 				{
 					name: 'medium',
 					width: 1224,
-					cellSize: 20,
+					cellSize: 30,
 				},
 				{
 					name: 'small',
 					width: 900,
-					cellSize: 10,
+					cellSize: 30,
 			}],
 			thisScreenSize = _.reduce(screenSizes, function (smallScreen, thisScreen, key) {
 				if (thisScreen.width > minWidth) return smallScreen;
@@ -90,14 +84,8 @@ function Game (container) {
 			cellsWide = Math.floor($(container).width() / thisScreenSize.cellSize);
 			cellsHigh = Math.floor($(container).height() / thisScreenSize.cellSize);
 			// a painter object to control the DOM
-			board = new Board(cellsWide, cellsHigh);
+			board = new Board(cellsWide, cellsHigh, container);
 			return board;
-	}
-
-
-	function Manipulate (argument) {
-		// changes the game area according to the active elements
-		// use pub/sub and subscribe to field and snake
 	}
 
 	this.start = function() {
@@ -123,11 +111,14 @@ function Game (container) {
 	}
 }
 
-function Board (width, height) {
-	var head, tail, snakePosition;
+function Board (width, height, container) {
+	var oldSnakePosition = [];
+	this.width = width;
+	this.height = height;
 
+	setup();
 	// put the board elements in the DOM
-	this.setup = function(container) {
+	function setup() {
 		var gameSpace = $(container);
 		gameSpace.empty();
 		var columns = '';
@@ -147,41 +138,60 @@ function Board (width, height) {
 	};
 
 	this.drawSnake = function (position) {
-		_.each(snakePosition, erase);
-		console.log(position[0][1]);
-		_.each(position, drawBodyCell);
-		snakePosition = position.slice(0);
+		if (oldSnakePosition.length > 0 && isCoord(oldSnakePosition[0]) ) {
+			eraseSnake(oldSnakePosition);
+		}
 
-		function erase (coord, index, position) {
-			var cell = getCell(coord);
-			empty(cell);
+		_.forEach(position, drawBodyCell);
+
+		oldSnakePosition = position.slice(0);
+
+		function eraseSnake (position) {
+			_.forEach(position, function (coord) {
+				emptyCell(getCell(coord));
+			});
 		}
 
 		function drawBodyCell (coord, index, position) {
-			if (index > 0 && index < position.length -1 ) {
-			var threeStepDifference = subtractVector(position[index-1], position[index+1]),
-				oneStepDifference = subtractVector(position[index-1], coord),
-				signature = addVector(oneStepDifference, threeStepDifference),
-				options = {
-					'-2,1': 'bottomLeft',
-					'2,1': 'bottomRight',
-					'-2,-1': 'topLeft',
-					'2,-1': 'topRight',
-					'1,2': 'topLeft',
-					'-1,2': 'bottomLeft',
-					'1,-2': 'topRight',
-					'-1,-2': 'bottomRight',
-				};
+			var endOptions = {
+				'0,1': 'top',
+				'1,0': 'right',
+				'0,-1': 'bottom',
+				'-1,0': 'left',
+			},
+			bodyOptions = {
+				'0,1': {
+					'0,1': 'vertical',
+					'-1,0': 'bottomLeft',
+					'1,0': 'bottomRight',
+				},
+				'1,0': {
+					'1,0': 'horizontal',
+					'0,1': 'bottomRight',
+					'0,-1': 'bottomLeft',
+				},
+				'0,-1': {
+					'0,-1': 'vertical',
+					'1,0': 'topRight',
+					'-1,0': 'topLeft',
+				},
+				'-1,0': {
+					'-1,0': 'horizontal',
+					'0,1': 'topRight',
+					'0,-1': 'topLeft',
+				},
+			};
 
-				setCell(coord, 'topRight');
-			} else if (index === 0) {
-				console.log('head');
-				setCell(_.first(position), 'head');
-				head = _.first(position);
-			} else if (index === position.length - 1) {
-				console.log('tail');
-				setCell(_.last(position), 'tail');
-				tail = _.last(position);
+			if (index > 0 && index < position.length -1 ) { // is not the head or the tail
+				var firstStepDifference = subtractVector(coord, position[index+1]);
+				var secondStepDifference = subtractVector(position[index-1], coord);
+				setCell(coord, bodyOptions[firstStepDifference][secondStepDifference]);
+			} else if (index === 0) { // is the head
+				var headTriangle = endOptions[subtractVector(position[1], _.first(position))];
+				setCell(_.first(position), headTriangle);
+			} else if (index === (position.length -1)) {
+				var tailTriangle = endOptions[subtractVector(position[position.length - 2], _.last(position))];
+				setCell(_.last(position), tailTriangle);
 			}
 		}
 	};
@@ -189,61 +199,74 @@ function Board (width, height) {
 	function setCell(coord, content) {
 		var cell = getCell(coord);
 		var setContents = {
-			'empty': empty,
-			'horizontal': horizontal,
-			'vertical': vertical,
-			'topLeft': topLeft,
-			'topRight': topRight,
-			'bottomLeft': bottomLeft,
-			'bottomRight': bottomRight,
-			'head': head,
-			'tail': tail,
-			'food': food,
+			"empty": emptyCell,
+			"horizontal": horizontalCell,
+			"vertical": verticalCell,
+			"topLeft": topLeftCell,
+			"topRight": topRightCell,
+			"bottomLeft": bottomLeftCell,
+			"bottomRight": bottomRightCell,
+			"bottom": bottomCell,
+			"top": topCell,
+			"right": rightCell,
+			"left": leftCell,
+			"head": headCell,
+			"tail": tailCell,
+			"food": foodCell,
 		};
-		try {
-			setContents[content](cell);
-		} catch (e) {
-			// console.log(e);
-		} finally {
-			setContents.vertical(cell);
-		}
+		setContents[content](cell);
 	};
 
 	function getCell(coord) {
-		var selector = '#row' + coord[1] + ' .column' + coord[0];
-		return $(selector);
+		return $(selectCell(coord));
 	}
 
 	function selectCell (coord) {
 		return '#row' + coord[1] + ' .column' + coord[0];
 	}
 
-	function empty (cell) {
+	function emptyCell (cell) {
 		cell.empty();
 	}
 
-	function horizontal (cell) {
+	function horizontalCell (cell) {
 		cell.empty().append(triangles(['top', 'bottom']));
 	}
 
-	function vertical (cell) {
-		cell.empty().append(triangles(['left', 'right']));
+	function verticalCell (cell) {
+		cell.append(triangles(['left', 'right']));
 	}
 
-	function topLeft (cell) {
+	function topLeftCell (cell) {
 		cell.empty().append(triangles(['left', 'top']));
 	}
 
-	function topRight (cell) {
+	function topRightCell (cell) {
 		cell.empty().append(triangles(['top', 'right']));
 	}
 
-	function bottomLeft (cell) {
+	function bottomLeftCell (cell) {
 		cell.empty().append(triangles(['left', 'bottom']));
 	}
 
-	function bottomRight (cell) {
+	function bottomRightCell (cell) {
 		cell.empty().append(triangles(['bottom', 'right']));
+	}
+
+	function bottomCell (cell) {
+		cell.empty().append(triangles(['bottom']));
+	}
+
+	function topCell (cell) {
+		cell.empty().append(triangles(['top']));
+	}
+
+	function rightCell (cell) {
+		cell.empty().append(triangles(['right']));
+	}
+
+	function leftCell (cell) {
+		cell.empty().append(triangles(['left']));
 	}
 
 	function triangles (positions) {
@@ -254,18 +277,15 @@ function Board (width, height) {
 		return html;
 	}
 
-	function head (cell) {
-		// cell.append(snakeHead());
+	function headCell (cell) {
 		cell.empty().append(triangles(['bottom']));
 	}
 
-	function tail (cell) {
-		// cell.append(snakeTail());
+	function tailCell (cell) {
 		cell.empty().append(triangles(['top']));
 	}
 
-	function food (cell) {
-		// cell.append(snakeFood());
+	function foodCell (cell) {
 		vertical(cell);
 	}
 

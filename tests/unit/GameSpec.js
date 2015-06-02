@@ -1,14 +1,8 @@
 describe("Game", function(){
 	var game;
 	beforeEach(function() {
-		game = new Game();
+		game = new Game('#game_space');
 	});
-
-	it("should have a field and a snake", function(){
-		expect(_.isObject(game.snake)).toBe(true);
-		expect(_.isObject(game.field)).toBe(true);
-	});
-
 
 	xit("should run a countdown before initiating play", function(){
 		game.start();
