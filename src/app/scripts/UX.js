@@ -5,28 +5,27 @@ function Game (divContainer) {
 		cellsWide,
 		cellsHigh;
 
+	messenger = new PubSub();
+
 	this.board = build(divContainer);
-	this.field = new Map(this.board.width, this.board.height);
-	this.player = new Player();
-	this.snake = new Snake(this.field);
+	this.field = new Map(this.board.width, this.board.height, messenger.send);
+	this.player = new Player(messenger.send);
+	this.snake = new Snake(this.field, messenger.send);
 
 
 	// Use Pub/Sub to connect field and snake to painter and, the game functions
 	// a pub/sub version:
 	// http://davidwalsh.name/pubsub-javascript
-	messenger = new PubSub();
 
-	this.snake.broadcast = messenger.send;
-	this.field.broadcast = messenger.send;
-	this.player.broadcast = messenger.send;
 	messenger.register('snake', 'position', this.board.drawSnake);
+	messenger.register('snake', 'dead', function() {console.log("SNAKE DEAD");});
 	messenger.register('map', 'food', this.board.drawFood);
-
+	messenger.register('player', 'press', this.snake.move);
 	// Snake needs to drawn onto the board at the start
 	// Should this be done automatically in snake or from board?
 
-	this.board.drawSnake(this.snake.location());
-	this.snake.move('left');
+	this.field.growFood(this.snake.location());
+	// this.snake.move('left');
 	//
 	// SNAKE.MOVE DOES NOT TRIGGER BOARD.DRAWSNAKE
 	//
@@ -123,7 +122,7 @@ function Board (width, height, container) {
 		gameSpace.empty();
 		var columns = '';
 
-		for (var j = height; j > 0; j--) {
+		for (var j = height; j >= 0; j--) {
 			gameSpace.append('<div class="row" id="row' + j + '"></div>');
 		}
 
@@ -167,7 +166,7 @@ function Board (width, height, container) {
 				},
 				'1,0': {
 					'1,0': 'horizontal',
-					'0,1': 'bottomRight',
+					'0,1': 'topLeft',
 					'0,-1': 'bottomLeft',
 				},
 				'0,-1': {
@@ -178,7 +177,7 @@ function Board (width, height, container) {
 				'-1,0': {
 					'-1,0': 'horizontal',
 					'0,1': 'topRight',
-					'0,-1': 'topLeft',
+					'0,-1': 'bottomRight',
 				},
 			};
 
@@ -286,7 +285,7 @@ function Board (width, height, container) {
 	}
 
 	function foodCell (cell) {
-		vertical(cell);
+		topCell(cell);
 	}
 
 	function snakeHead () {
@@ -329,7 +328,6 @@ function PubSub() {
 			var topic = entity.toString() + name.toString();
 			// If topic does not exist or there are no subscribers, just return
 			if (!hOP.call(topics, topic)) return;
-
 			// publish to each subscriber
 			topics[topic].forEach(function(subscriber) {
 				subscriber(info !== undefined ? info : {});

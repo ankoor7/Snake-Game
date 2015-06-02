@@ -1,20 +1,12 @@
 "use strict";
 
-function Map (width, height) {
+function Map (width, height, broadcast) {
   if (isNaN(width)) { width = 8; }
   if (isNaN(height)) { height = 8; }
   var allCells = setAllCells();
 
   //  Protected
   var food;
-
-  this.setBroadcast = function (method) {
-    broadcast = method;
-  };
-  this.testBroadcast = function() {
-    return broadcast();
-  };
-  function broadcast() {};
 
   this.getHeight = function() {
     return height;
@@ -80,17 +72,25 @@ function Map (width, height) {
   }
 }
 
-function Player (snake) {
-  this.setBroadcast = function (method) {
-    broadcast = method;
-  };
-  this.testBroadcast = function() {
-    return broadcast();
-  };
-  function broadcast() {};
+function Player (broadcast) {
+  $(document).keydown(function (e) {
+    var keys = {
+      13: 'enter',
+      27: 'escape',
+      32: 'space',
+      37: 'left',
+      38: 'up',
+      39: 'right',
+      40: 'down',
+      81: 'q',
+    },
+    code = e.which;
+    broadcast('player', 'press', keys[code]);
+  });
+
 }
 
-function Snake (field) {
+function Snake (field, broadcast) {
   var compass = {
     'left':       [-1,0],
     'right':    [1,0],
@@ -100,24 +100,18 @@ function Snake (field) {
   var position = setInitialPosition(field);
   var status = 'alive';
 
-  this.setBroadcast = function (method) {
-    broadcast = method;
-  };
-  this.testBroadcast = function() {
-    return broadcast();
-  };
-  function broadcast() {};
-
   this.move = function (direction) {
+    if (!compass.hasOwnProperty(direction)) { return; }
     var nextCoord = addVector(position[0], compass[direction]);
-    if (canMoveTo(nextCoord, position)) {
+    if (canMoveTo(nextCoord, position) && status === 'alive') {
       setPosition(nextCoord);
+      eat();
     } else {
       dies();
     }
   };
 
-  this.eat = function () {
+  function eat() {
     if ( field.foundFood(position) ) {
       grow();
     }
@@ -152,7 +146,7 @@ function Snake (field) {
   }
 
   function grow() {
-    position.push(null);
+    position.push([]);
   }
 
   function dies() {
