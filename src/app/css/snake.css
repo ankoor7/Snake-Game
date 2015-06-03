@@ -47,7 +47,7 @@ body .cell, body .row {
 
 
 .cell {
-  background-color: gray;
+  background-color: rgb(0,200,100);
   position: relative;
   display: inline-block;
   zoom: 1; /* Fix for IE7 */
@@ -62,20 +62,40 @@ body .cell, body .row {
 
 .cell-top {
   border-width: 14px 15px 16px 15px;
-  border-color: #007bff transparent transparent transparent;
+  border-color: black transparent transparent transparent;
 }
 
 .cell-right {
   border-width: 15px 14px 15px 16px;
-  border-color: transparent  #007bff transparent transparent;
+  border-color: transparent  black transparent transparent;
 }
 
 .cell-bottom {
   border-width: 16px 15px 14px 15px;
-  border-color: transparent transparent #007bff transparent;
+  border-color: transparent transparent black transparent;
 }
 
 .cell-left {
   border-width: 15px 16px 15px 14px;
-  border-color: transparent transparent transparent #007bff;
+  border-color: transparent transparent transparent black;
+}
+
+.cell-top-head {
+  border-width: 30px 15px 0px 15px;
+  border-color: black transparent transparent transparent;
+}
+
+.cell-right-head {
+  border-width: 15px 30px 15px 0px;
+  border-color: transparent  black transparent transparent;
+}
+
+.cell-bottom-head {
+  border-width: 0px 15px 30px 15px;
+  border-color: transparent transparent black transparent;
+}
+
+.cell-left-head {
+  border-width: 15px 0px 15px 30px;
+  border-color: transparent transparent transparent black;
 }
