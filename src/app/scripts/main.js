@@ -2,3 +2,4 @@
 
 var game = new Game('#game_space');
 
+game.start();

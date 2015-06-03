@@ -73,21 +73,41 @@ function Map (width, height, broadcast) {
 }
 
 function Player (broadcast) {
-  $(document).keydown(function (e) {
-    var keys = {
-      13: 'enter',
-      27: 'escape',
-      32: 'space',
-      37: 'left',
-      38: 'up',
-      39: 'right',
-      40: 'down',
-      81: 'q',
-    },
-    code = e.which;
-    broadcast('player', 'press', keys[code]);
-  });
 
+      this.start = function() {
+            var loop;
+            $(document).ready(function() {
+                  var direction,
+                        keys = {
+                            13: 'enter',
+                            27: 'escape',
+                            32: 'space',
+                            37: 'left',
+                            38: 'up',
+                            39: 'right',
+                            40: 'down',
+                            81: 'q',
+                          };
+
+                  direction = 'up';
+                  listenForInput();
+
+                  loop = setInterval(fireCommand, 100);
+
+                  function listenForInput () {
+                      $(document).keydown(function (e) {
+                         direction = keys[e.which];
+                      });
+                  }
+
+                  function fireCommand () {
+                       broadcast('player', 'press', direction);
+                  }
+          });
+          return {
+            stop: function() { clearInterval(loop); }
+          };
+      };
 }
 
 function Snake (field, broadcast) {

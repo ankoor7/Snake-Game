@@ -3,7 +3,9 @@
 function Game (divContainer) {
 	var messenger,
 		cellsWide,
-		cellsHigh;
+		cellsHigh,
+		gameLoop,
+		snake;
 
 	messenger = new PubSub();
 
@@ -11,7 +13,7 @@ function Game (divContainer) {
 	this.field = new Map(this.board.width, this.board.height, messenger.send);
 	this.player = new Player(messenger.send);
 	this.snake = new Snake(this.field, messenger.send);
-
+	snake = this.snake;
 
 	// Use Pub/Sub to connect field and snake to painter and, the game functions
 	// a pub/sub version:
@@ -21,23 +23,14 @@ function Game (divContainer) {
 	messenger.register('snake', 'dead', function() {console.log("SNAKE DEAD");});
 	messenger.register('map', 'food', this.board.drawFood);
 	messenger.register('player', 'press', this.snake.move);
-	// Snake needs to drawn onto the board at the start
-	// Should this be done automatically in snake or from board?
+	messenger.register('player', 'press', end);
 
-	this.field.growFood(this.snake.location());
-	// this.snake.move('left');
-	//
-	// SNAKE.MOVE DOES NOT TRIGGER BOARD.DRAWSNAKE
-	//
-	this.board.drawSnake(this.snake.location());
+
 
 	// when snake is dead:
 	// - clear the board,
 	//  - show the score,
 	//  - show the end of game menu
-	// messenger.register('snake', 'dead', board.clearBoard);
-	// messenger.register('snake', 'dead', showScores);
-	// messenger.register('snake', 'dead', showEndGameMenu);
 
 	function build (container) {
 		var board,
@@ -80,8 +73,8 @@ function Game (divContainer) {
 				})
 			}
 
-			cellsWide = Math.floor($(container).width() / thisScreenSize.cellSize);
-			cellsHigh = Math.floor($(container).height() / thisScreenSize.cellSize);
+			cellsWide = Math.floor( ($(container).width() - thisScreenSize.cellSize) / thisScreenSize.cellSize);
+			cellsHigh = Math.floor( ($(container).height() - thisScreenSize.cellSize) / thisScreenSize.cellSize);
 			// a painter object to control the DOM
 			board = new Board(cellsWide, cellsHigh, container);
 			return board;
@@ -90,23 +83,28 @@ function Game (divContainer) {
 	this.start = function() {
 		countDown()
 		this.field.growFood(this.snake.location());
+		this.board.drawSnake(this.snake.location());
+		gameLoop = this.player.start();
 	};
 
-	this.end = function() {
+	function end(keyPress) {
+		if (keyPress === 'q' || snake.getStatus() === 'dead') {
+			gameLoop.stop();
+		}
 	};
 
 	function countDown (number) {
 		// set div contents to '3'
-		setTimeout(function() {
+		// setTimeout(function() {
 			// set div contents to 2
-		}, 1000);
-		setTimeout(function() {
+		// }, 1000);
+		// setTimeout(function() {
 			// set div contents to 1
-		}, 2000);
-		setTimeout(function() {
+		// }, 2000);
+		// setTimeout(function() {
 			// set contents of div to 'GO!!'
 			// Fade out the div and remove
-		}, 2300);
+		// }, 2300);
 	}
 }
 
@@ -126,7 +124,7 @@ function Board (width, height, container) {
 			gameSpace.append('<div class="row" id="row' + j + '"></div>');
 		}
 
-		for (var i = width; i > 0; i--) {
+		for (var i = width; i >= 0; i--) {
 			columns = '<div class="column' + i + ' cell"></div>' + columns;
 		}
 		$('.row').append(columns);
@@ -253,19 +251,19 @@ function Board (width, height, container) {
 	}
 
 	function bottomCell (cell) {
-		cell.empty().append(triangles(['bottom']));
+		cell.empty().append(triangles(['bottom-head']));
 	}
 
 	function topCell (cell) {
-		cell.empty().append(triangles(['top']));
+		cell.empty().append(triangles(['top-head']));
 	}
 
 	function rightCell (cell) {
-		cell.empty().append(triangles(['right']));
+		cell.empty().append(triangles(['right-head']));
 	}
 
 	function leftCell (cell) {
-		cell.empty().append(triangles(['left']));
+		cell.empty().append(triangles(['left-head']));
 	}
 
 	function triangles (positions) {
@@ -285,7 +283,7 @@ function Board (width, height, container) {
 	}
 
 	function foodCell (cell) {
-		topCell(cell);
+		cell.empty().append(triangles(['bottom', 'top', 'left', 'right']));
 	}
 
 	function snakeHead () {
