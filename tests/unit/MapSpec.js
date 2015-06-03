@@ -1,8 +1,9 @@
 describe("Map", function(){
 	var field, snake;
  	beforeEach(function() {
- 		field = new Map(8,8);
- 		snake = new Snake(field);
+
+ 		field = new Map(8,8, function() {return;};);
+ 		snake = new Snake(field, function() {return;};);
  	});
 
 
